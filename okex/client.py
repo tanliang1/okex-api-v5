@@ -34,7 +34,7 @@ class Client(object):
         # send request
         response = None
 
-        # print("url:", url)
+        print("url:", url)
         # print("headers:", header)
         # print("body:", body)
 
