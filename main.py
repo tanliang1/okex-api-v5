@@ -1,3 +1,5 @@
+
+import pandas
 import okex.Account_api as Account
 import okex.Funding_api as Funding
 import okex.Market_api as Market
@@ -6,12 +8,65 @@ import okex.Trade_api as Trade
 import okex.subAccount_api as SubAccount
 import okex.status_api as Status
 import json
+from function import kdj
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 
-if __name__ == '__main__':
-    api_key = ""
-    secret_key = ""
-    passphrase = ""
+
+lastHight:float= 0
+lastLow:float = 0
+lastClose:float = 0
+lastOpen:float = 0
+def startMoniter():
+    schedule = BlockingScheduler()
+    schedule.add_job(moniterAllStock, 'interval', seconds=10, id='test_job1')
+    schedule.start()
+
+def moniterAllStock():
+    api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
+    secret_key = "7BA182507BAAAA2B5AB5F12D34D83B5"
+    passphrase = "Asdf456987"
+    # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
+    # flag = '1'  # 模拟盘 demo trading
+    flag = '0'  # 实盘 real trading
+    marketAPI = Market.MarketAPI(api_key, secret_key, passphrase, False, flag)
+    result = marketAPI.get_history_candlesticks('BTC-USDT', None, None, "1m", 100)
+    data: list = result['data']
+    print("data:" + str(data))
+
+    for i, val in enumerate(data):
+        # val[0] = timeStampTostr
+        val[1] = float(val[1])
+        val[2] = float(val[2])
+        val[3] = float(val[3])
+        val[4] = float(val[4])
+        val[5] = float(val[5])
+        val[5] = float(val[6])
+    # kline = pandas.read_json(result, orient="records")
+    data.reverse()
+    lastTicker = marketAPI.get_ticker('BTC-USDT')
+    print("lastPrice:" + str(lastTicker))
+    lastPrice :float = float(lastTicker['data'][0]['last'])
+    lastTs :int = int(lastTicker['data'][0]['ts'])
+
+    global lastLow,lastHight,lastClose,lastOpen
+    #每个15分钟重新计算
+    if(lastTs % (1000*60*1) < 10):
+        lastLow = 0
+        lastHight = 0
+    if (lastPrice > lastHight):
+        lastHight = lastPrice
+    if (lastPrice < lastLow):
+        lastLow = lastPrice
+    lastClose = lastPrice
+    data.append()
+    lastOpen = data[len(data)-1][1]
+    kdj(pandas.DataFrame(data))
+
+def example(msg):
+    api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
+    secret_key = "7BA182507BAAAA2B5AB5F12D34D83B5"
+    passphrase = "Asdf456987"
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
     # flag = '1'  # 模拟盘 demo trading
     flag = '0'  # 实盘 real trading
@@ -89,7 +144,21 @@ if __name__ == '__main__':
     # 获取所有交易产品K线数据  Get Candlesticks
     # result = marketAPI.get_candlesticks('BTC-USDT-210924', bar='1m')
     # 获取交易产品历史K线数据（仅主流币实盘数据）  Get Candlesticks History（top currencies in real-trading only）
-    # result = marketAPI.get_history_candlesticks('BTC-USDT')
+    result = marketAPI.get_history_candlesticks('XRP-USDT', None, None, "5m", 100)
+    data: list = result['data']
+    print("data:" + str(data))
+
+    for i, val in enumerate(data):
+        # val[0] = timeStampTostr
+        val[1] = float(val[1])
+        val[2] = float(val[2])
+        val[3] = float(val[3])
+        val[4] = float(val[4])
+        val[5] = float(val[5])
+        val[5] = float(val[6])
+    # kline = pandas.read_json(result, orient="records")
+    data.reverse()
+    kdj(pandas.DataFrame(data))
     # 获取指数K线数据  Get Index Candlesticks
     # result = marketAPI.get_index_candlesticks('BTC-USDT')
     # 获取标记价格K线数据  Get Mark Price Candlesticks
@@ -201,7 +270,11 @@ if __name__ == '__main__':
     # result = subAccountAPI.control_transfer(ccy='', amt='', froms='', to='', fromSubAccount='', toSubAccount='')
 
     # 系统状态API(仅适用于实盘) system status
-    Status = Status.StatusAPI(api_key, secret_key, passphrase, False, flag)
+    #Status = Status.StatusAPI(api_key, secret_key, passphrase, False, flag)
     # 查看系统的升级状态
     # result = Status.status()
     print(json.dumps(result))
+
+
+if __name__ == '__main__':
+    startMoniter()
