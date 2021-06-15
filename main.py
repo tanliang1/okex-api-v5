@@ -6,7 +6,6 @@ import okex.Market_api as Market
 import okex.Public_api as Public
 import okex.Trade_api as Trade
 import okex.subAccount_api as SubAccount
-import okex.status_api as Status
 import json
 from function import kdj
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -19,13 +18,14 @@ lastClose:float = 0
 lastOpen:float = 0
 def startMoniter():
     schedule = BlockingScheduler()
-    schedule.add_job(moniterAllStock, 'interval', seconds=10, id='test_job1')
+    schedule.add_job(moniterAllStock, 'interval', seconds=5, id='test_job1',max_instances=10)
     schedule.start()
 
 def moniterAllStock():
     api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
     secret_key = "7BA182507BAAAA2B5AB5F12D34D83B5"
     passphrase = "Asdf456987"
+    tickerName = 'BTC-USDT'
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
     # flag = '1'  # 模拟盘 demo trading
     flag = '0'  # 实盘 real trading
@@ -42,9 +42,10 @@ def moniterAllStock():
         val[4] = float(val[4])
         val[5] = float(val[5])
         val[5] = float(val[6])
+        #print('index:'+str(i) + " val:"+str(val))
     # kline = pandas.read_json(result, orient="records")
     data.reverse()
-    lastTicker = marketAPI.get_ticker('BTC-USDT')
+    lastTicker = marketAPI.get_ticker(tickerName)
     print("lastPrice:" + str(lastTicker))
     lastPrice :float = float(lastTicker['data'][0]['last'])
     lastTs :int = int(lastTicker['data'][0]['ts'])
@@ -59,9 +60,11 @@ def moniterAllStock():
     if (lastPrice < lastLow):
         lastLow = lastPrice
     lastClose = lastPrice
-    data.append()
-    lastOpen = data[len(data)-1][1]
-    kdj(pandas.DataFrame(data))
+    #data.append()
+    lastOpen = data[len(data)-1][3]
+    newElement = [lastTs,lastOpen,lastHight,lastLow,lastClose,0,0]
+    data.insert(len(data),newElement)
+    kdj(pandas.DataFrame(data),tickerName)
 
 def example(msg):
     api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
