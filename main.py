@@ -18,7 +18,7 @@ lastClose:float = 0
 lastOpen:float = 0
 def startMoniter():
     schedule = BlockingScheduler()
-    schedule.add_job(moniterAllStock, 'interval', seconds=5, id='test_job1',max_instances=10)
+    schedule.add_job(moniterAllStock, 'interval', seconds=10, id='test_job1',max_instances=10)
     schedule.start()
 
 def moniterAllStock():
@@ -64,7 +64,7 @@ def moniterAllStock():
     lastOpen = data[len(data)-1][3]
     newElement = [lastTs,lastOpen,lastHight,lastLow,lastClose,0,0]
     data.insert(len(data),newElement)
-    kdj(pandas.DataFrame(data),tickerName)
+    kdj(pandas.DataFrame(data),tickerName,1000)
 
 def example(msg):
     api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
@@ -278,6 +278,20 @@ def example(msg):
     # result = Status.status()
     print(json.dumps(result))
 
+def trade():
+    api_key = "264411a2-e5c6-4225-bc23-8396a6850daf"
+    secret_key = "7BA182507BAAAA2B5AB5F12D34D83B52"
+    passphrase = "Asdf456987"
+    # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
+    flag = '1'  # 模拟盘 demo trading
+    #flag = '0'  # 实盘 real trading
+    # trade api
+    tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
+    # 下单  Place Order
+    result = tradeAPI.place_order(instId='ETH-USDT', tdMode='cross', side='sell',ccy='ETH',
+                                   ordType='market', sz='0.1')
+    print(result)
 
 if __name__ == '__main__':
-    startMoniter()
+    #startMoniter()
+    trade()

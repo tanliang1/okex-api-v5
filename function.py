@@ -9,8 +9,8 @@ crossUpSended :bool = False
 crossDownSended :bool = False
 lastTimeSendMsg :int = 0
 
-
-def kdj(klines : pandas.DataFrame,code :str):
+messageMap : dict = {}
+def kdj(klines : pandas.DataFrame,code :str,period :int):
     klines.rename(columns={ 0:'date',1:'open',2:'high',3:'low',4:'close', 5:'vol', 6:'volCcy'},inplace=True)
     kdj = KDJ(klines, 9, 3, 3)
     kList = list(kdj["k"])
@@ -32,7 +32,7 @@ def kdj(klines : pandas.DataFrame,code :str):
             time = timeStampTostr(timeInt/1000)
             msg = code +" time:" + str(time) + "  kdj金叉\n"
             global crossUpSended
-            if(lastTimeSendMsg - timeInt > 1000*60):
+            if(timeInt - lastTimeSendMsg > 1000*60):
                crossUpSended = False
             if(crossUpSended == False):
                 print(msg)
@@ -44,7 +44,7 @@ def kdj(klines : pandas.DataFrame,code :str):
             time = timeStampTostr(timeInt)
             msg = code +" time:" + str(time) + "  kdj死叉\n"
             global crossDownSended
-            if (lastTimeSendMsg - timeInt > 1000 * 60):
+            if (timeInt - lastTimeSendMsg > 1000 * 60):
                 crossUpSended = False
             if (crossDownSended == False):
                 print(msg)
