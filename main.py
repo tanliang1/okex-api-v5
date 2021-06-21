@@ -1,3 +1,4 @@
+import time
 
 import pandas
 import okex.Account_api as Account
@@ -10,61 +11,38 @@ import json
 from function import kdj
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-
+from okex.consts import COIN_TYPE, PERROD_STR, API_KEY, SECRET_KEY, PASSPHRASE, CCY
 
 lastHight:float= 0
 lastLow:float = 0
 lastClose:float = 0
 lastOpen:float = 0
+
+
 def startMoniter():
     schedule = BlockingScheduler()
-    schedule.add_job(moniterAllStock, 'interval', seconds=10, id='test_job1',max_instances=10)
+    schedule.add_job(moniterAllStock, 'interval', seconds=5, id='test_job1',max_instances=10)
     schedule.start()
 
 def moniterAllStock():
-    api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
-    secret_key = "7BA182507BAAAA2B5AB5F12D34D83B5"
-    passphrase = "Asdf456987"
-    tickerName = 'BTC-USDT'
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
     # flag = '1'  # 模拟盘 demo trading
     flag = '0'  # 实盘 real trading
-    marketAPI = Market.MarketAPI(api_key, secret_key, passphrase, False, flag)
-    result = marketAPI.get_history_candlesticks('BTC-USDT', None, None, "1m", 100)
+    #marketAPI = Market.MarketAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
+    #result = marketAPI.get_history_candlesticks('BTC-USDT', None, None, "5m", 1000)
+    marketAPI = Market.MarketAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, '0')
+    result = marketAPI.get_candlesticks(COIN_TYPE, bar= PERROD_STR)
     data: list = result['data']
-    print("data:" + str(data))
-
     for i, val in enumerate(data):
-        # val[0] = timeStampTostr
+        val[0] = int(val[0])
         val[1] = float(val[1])
         val[2] = float(val[2])
         val[3] = float(val[3])
         val[4] = float(val[4])
         val[5] = float(val[5])
         val[5] = float(val[6])
-        #print('index:'+str(i) + " val:"+str(val))
-    # kline = pandas.read_json(result, orient="records")
     data.reverse()
-    lastTicker = marketAPI.get_ticker(tickerName)
-    print("lastPrice:" + str(lastTicker))
-    lastPrice :float = float(lastTicker['data'][0]['last'])
-    lastTs :int = int(lastTicker['data'][0]['ts'])
-
-    global lastLow,lastHight,lastClose,lastOpen
-    #每个15分钟重新计算
-    if(lastTs % (1000*60*1) < 10):
-        lastLow = 0
-        lastHight = 0
-    if (lastPrice > lastHight):
-        lastHight = lastPrice
-    if (lastPrice < lastLow):
-        lastLow = lastPrice
-    lastClose = lastPrice
-    #data.append()
-    lastOpen = data[len(data)-1][3]
-    newElement = [lastTs,lastOpen,lastHight,lastLow,lastClose,0,0]
-    data.insert(len(data),newElement)
-    kdj(pandas.DataFrame(data),tickerName,1000)
+    kdj(pandas.DataFrame(data),COIN_TYPE,1)
 
 def example(msg):
     api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
@@ -147,7 +125,7 @@ def example(msg):
     # 获取所有交易产品K线数据  Get Candlesticks
     # result = marketAPI.get_candlesticks('BTC-USDT-210924', bar='1m')
     # 获取交易产品历史K线数据（仅主流币实盘数据）  Get Candlesticks History（top currencies in real-trading only）
-    result = marketAPI.get_history_candlesticks('XRP-USDT', None, None, "5m", 100)
+    result = marketAPI.get_history_candlesticks('XRP-USDT', None, None, "1m", 100)
     data: list = result['data']
     print("data:" + str(data))
 
@@ -278,20 +256,38 @@ def example(msg):
     # result = Status.status()
     print(json.dumps(result))
 
-def trade():
-    api_key = "264411a2-e5c6-4225-bc23-8396a6850daf"
-    secret_key = "7BA182507BAAAA2B5AB5F12D34D83B52"
-    passphrase = "Asdf456987"
+def buy():
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
     flag = '1'  # 模拟盘 demo trading
-    #flag = '0'  # 实盘 real trading
+    flag = '0'  # 实盘 real trading
     # trade api
-    tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
+    tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
-    result = tradeAPI.place_order(instId='ETH-USDT', tdMode='cross', side='sell',ccy='ETH',
-                                   ordType='market', sz='0.1')
+    result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='buy',ccy=CCY,
+                                   ordType='market', sz='1',posSide='long')
+    print(result)
+def sell():
+    # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
+    flag = '1'  # 模拟盘 demo trading
+    flag = '0'  # 实盘 real trading
+    # trade api
+    tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
+    # 下单  Place Order
+    result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='sell',ccy=CCY,
+                                   ordType='market', sz='1',posSide='short')
+    print(result)
+def closeTrade(posSideStr : str):
+    # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
+    flag = '1'  # 模拟盘 demo trading
+    flag = '0'  # 实盘 real trading
+    # trade api
+    tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
+    # 下单  Place Order
+    result = tradeAPI.close_positions(instId = COIN_TYPE, mgnMode = 'cross', posSide = posSideStr)
     print(result)
 
 if __name__ == '__main__':
-    #startMoniter()
-    trade()
+    startMoniter()
+    #sell()
+    closeTrade('long')
+    #buy()

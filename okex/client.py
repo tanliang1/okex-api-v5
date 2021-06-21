@@ -37,11 +37,13 @@ class Client(object):
         print("url:", url)
         # print("headers:", header)
         # print("body:", body)
-
+        requests.adapters.DEFAULT_RETRIES = 5
+        s = requests.session()
+        s.keep_alive = False
         if method == c.GET:
-            response = requests.get(url, headers=header)
+            response = s.get(url, headers=header)
         elif method == c.POST:
-            response = requests.post(url, data=body, headers=header)
+            response = s.post(url, data=body, headers=header)
 
         # exception handle
         # print(response.headers)

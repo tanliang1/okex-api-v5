@@ -7,3 +7,5 @@ def timeStampTostr(timeStamp):
     return timeLocal
 
 
+def nowTime():
+    return time.time()
