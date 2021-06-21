@@ -107,8 +107,8 @@ CONTROL_TRANSFER = '/api/v5/asset/subaccount/transfer'
 # status
 STATUS = '/api/v5/system/status'
 
-PERROD : int= 5
-PERROD_STR = '1m'
+PERROD : int= 3
+PERROD_STR = '3m'
 
 API_KEY = "264411a2-e5c6-4225-bc23-8396a6850daf"
 SECRET_KEY = "7BA182507BAAAA2B5AB5F12D34D83B52"

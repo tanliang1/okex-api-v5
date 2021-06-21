@@ -1,4 +1,3 @@
-import time
 
 import pandas
 import okex.Account_api as Account
@@ -11,7 +10,7 @@ import json
 from function import kdj
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from okex.consts import COIN_TYPE, PERROD_STR, API_KEY, SECRET_KEY, PASSPHRASE, CCY
+from okex.consts import COIN_TYPE, PERROD_STR, API_KEY, SECRET_KEY, PASSPHRASE, CCY, PERROD
 
 lastHight:float= 0
 lastLow:float = 0
@@ -42,7 +41,7 @@ def moniterAllStock():
         val[5] = float(val[5])
         val[5] = float(val[6])
     data.reverse()
-    kdj(pandas.DataFrame(data),COIN_TYPE,1)
+    kdj(pandas.DataFrame(data),COIN_TYPE,PERROD)
 
 def example(msg):
     api_key = "64411a2-e5c6-4225-bc23-8396a6850daf"
@@ -125,21 +124,21 @@ def example(msg):
     # 获取所有交易产品K线数据  Get Candlesticks
     # result = marketAPI.get_candlesticks('BTC-USDT-210924', bar='1m')
     # 获取交易产品历史K线数据（仅主流币实盘数据）  Get Candlesticks History（top currencies in real-trading only）
-    result = marketAPI.get_history_candlesticks('XRP-USDT', None, None, "1m", 100)
-    data: list = result['data']
-    print("data:" + str(data))
-
-    for i, val in enumerate(data):
-        # val[0] = timeStampTostr
-        val[1] = float(val[1])
-        val[2] = float(val[2])
-        val[3] = float(val[3])
-        val[4] = float(val[4])
-        val[5] = float(val[5])
-        val[5] = float(val[6])
-    # kline = pandas.read_json(result, orient="records")
-    data.reverse()
-    kdj(pandas.DataFrame(data))
+    # result = marketAPI.get_history_candlesticks('XRP-USDT', None, None, "1m", 100)
+    # data: list = result['data']
+    # print("data:" + str(data))
+    #
+    # for i, val in enumerate(data):
+    #     # val[0] = timeStampTostr
+    #     val[1] = float(val[1])
+    #     val[2] = float(val[2])
+    #     val[3] = float(val[3])
+    #     val[4] = float(val[4])
+    #     val[5] = float(val[5])
+    #     val[5] = float(val[6])
+    # # kline = pandas.read_json(result, orient="records")
+    # data.reverse()
+    # kdj(pandas.DataFrame(data))
     # 获取指数K线数据  Get Index Candlesticks
     # result = marketAPI.get_index_candlesticks('BTC-USDT')
     # 获取标记价格K线数据  Get Mark Price Candlesticks
@@ -254,7 +253,7 @@ def example(msg):
     #Status = Status.StatusAPI(api_key, secret_key, passphrase, False, flag)
     # 查看系统的升级状态
     # result = Status.status()
-    print(json.dumps(result))
+    #print(json.dumps(result))
 
 def buy():
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
@@ -264,7 +263,7 @@ def buy():
     tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='buy',ccy=CCY,
-                                   ordType='market', sz='1',posSide='long')
+                                   ordType='market', sz='10',posSide='long')
     print(result)
 def sell():
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
@@ -274,7 +273,7 @@ def sell():
     tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='sell',ccy=CCY,
-                                   ordType='market', sz='1',posSide='short')
+                                   ordType='market', sz='10',posSide='short')
     print(result)
 def closeTrade(posSideStr : str):
     # flag是实盘与模拟盘的切换参数 flag is the key parameter which can help you to change between demo and real trading.
@@ -289,5 +288,5 @@ def closeTrade(posSideStr : str):
 if __name__ == '__main__':
     startMoniter()
     #sell()
-    closeTrade('long')
+    #closeTrade('long')
     #buy()
