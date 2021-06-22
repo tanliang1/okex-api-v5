@@ -4,7 +4,8 @@ from tqsdk import tafunc
 from tqsdk.ta import KDJ
 #获取一天的kdj
 from dingmsg import dingmessage
-from okex.consts import COIN_TYPE, API_KEY, SECRET_KEY, PASSPHRASE, CCY, PERROD
+from okex.Key_Consts import API_KEY, SECRET_KEY, PASSPHRASE
+from okex.consts import COIN_TYPE, CCY, PERROD
 from utils import timeStampTostr, nowTime
 import okex.Trade_api as Trade
 crossUpSended :bool = False
@@ -19,7 +20,7 @@ from tqsdk import tafunc
 from tqsdk.ta import KDJ
 #获取一天的kdj
 from dingmsg import dingmessage
-from okex.consts import COIN_TYPE, API_KEY, SECRET_KEY, PASSPHRASE, CCY
+from okex.consts import COIN_TYPE , CCY
 from utils import timeStampTostr, nowTime
 import okex.Trade_api as Trade
 crossUpSended :bool = False
@@ -110,7 +111,7 @@ def buy():
     print('buy request_time:'+nowTimStr())
 
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='buy',ccy=CCY,
-                                   ordType='market', sz='20',posSide='long')
+                                   ordType='market', sz='200',posSide='long')
     print('buy success:'+nowTimStr())
 
     print(result)
@@ -126,7 +127,7 @@ def sell():
     tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='sell',ccy=CCY,
-                                   ordType='market', sz='20',posSide='short')
+                                   ordType='market', sz='200',posSide='short')
     print('sell success:'+nowTimStr())
 
     print(result)

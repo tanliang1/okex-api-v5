@@ -10,7 +10,8 @@ import json
 from function import kdj
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from okex.consts import COIN_TYPE, PERROD_STR, API_KEY, SECRET_KEY, PASSPHRASE, CCY, PERROD
+from okex.Key_Consts import API_KEY, SECRET_KEY, PASSPHRASE
+from okex.consts import COIN_TYPE, PERROD_STR, CCY, PERROD
 
 lastHight:float= 0
 lastLow:float = 0
