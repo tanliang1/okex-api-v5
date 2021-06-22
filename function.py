@@ -31,6 +31,7 @@ upStatus :bool = True
 downStatus :bool = True
 last_k :float = 0
 last_d :float = 0
+debugStart:bool = True
 def isCrossUp(kList,dList,msg_pre):
     lenth :int = len(kList)
     k = float(kList[lenth - 1])
@@ -43,25 +44,13 @@ def isCrossUp(kList,dList,msg_pre):
     global lastTimeSendMsg
     global upStatus,downStatus
     # #状态校验，防止一个周期内
-    msg_3 = ''
-    if timeInt - lastTimeSendMsg > PERROD*60:
-        #一个周期之后，上周期发生了向上金叉，但是中间又发生向下死叉，d仍然大于k.需要将状态纠正过来，认为是突破状态，金叉状态
-        if (k_1 < d_1 and k < d) and downStatus:
-            msg_3 = 'reverse to upstatuse ,go to jincha:'
-            upStatus = True
-            downStatus = False
-            handleCropssDown(msg_pre,timeInt,msg_3)
-         #   一个周期之后，上周期发生了，向下死叉，但是中间又发生向向上金叉，d仍然小于k.需将状态反转，并执行反向操作。
-        if (k_1 > d_1 and k > d) and upStatus:
-            msg_3 = 'reverse to upstatuse ,go to jincha:'
-            upStatus = False
-            downStatus = True
-            handleCrossUp(msg_pre, timeInt, msg_3)
+    msg_3 = '   k:'+str(k)+'   d:'+str(d)
     #金叉
     if(k_1 < d_1 and k > d) and upStatus:
         downStatus = True
         upStatus = False
-        handleCrossUp(msg_pre,timeInt,msg_3)
+        handleCrossUp(msg_pre,timeInt,msg_3,True)
+        return
         # msg = msg_pre + " jincha:"
         # result_1 = closeTrade('short')
         # result_2 = buy()
@@ -73,7 +62,8 @@ def isCrossUp(kList,dList,msg_pre):
     if (k_1 > d_1 and k < d) and downStatus:
         upStatus = True
         downStatus = False
-        handleCropssDown(msg_pre,timeInt,msg_3)
+        handleCropssDown(msg_pre,timeInt,msg_3,True)
+        return
         # msg = msg_pre + " sicha:"
         # result_1 = closeTrade('long')
         # result_2 = sell()
@@ -81,21 +71,54 @@ def isCrossUp(kList,dList,msg_pre):
         # print(msg)
         # dingmessage(msg)
         # lastTimeSendMsg = int(timeInt)
+    # 一分钟之内不管，减少震荡，一分钟过后，立即检查反转，时间过久可能发生价格大幅变动，增加波动值
+    #只做状态纠正，不做交易操作
+    if timeInt - lastTimeSendMsg > PERROD * 60/3 :
+        # 一个周期之后，上周期发生了向上金叉，但是中间又发生向下死叉，d仍然大于k.需要将状态纠正过来，认为是突破状态，金叉状态
+        if (k_1 < d_1 and k < d) and downStatus:
+            msg_3 = 'reverse to upstatuse ,go to jincha:'
+            upStatus = True
+            downStatus = False
+            handleCropssDown(msg_pre, timeInt, msg_3,False)
+            # 假突破后卖出买入的，等下次突破后再买
+            #   一个周期之后，上周期发生了，向下死叉，但是中间又发生向向上金叉，d仍然小于k.需将状态反转，并执行反向操作。
+        if (k_1 > d_1 and k > d) and upStatus:
+            msg_3 = 'reverse to upstatuse ,go to jincha:'
+            upStatus = False
+            downStatus = True
+            handleCrossUp(msg_pre, timeInt, msg_3,False)
+            #假突破后卖出买入的，等下次突破后再买
 
     print("klines k(n-2):"+str(k_1)+ ' d(n-2):'+str(d_1)+ ' k(n-1):'+ str(k) + ' d(n-1):'+str(d))
-def handleCrossUp(msg_pre,timeInt,msg_3):
+def handleCrossUp(msg_pre,timeInt,msg_3,needBuy):
     msg = msg_pre + " jincha:"
-    result_1 = closeTrade('short')
-    result_2 = buy()
+    result_2 = ''
+    try:
+        result_1 = closeTrade('short')
+    except Exception:
+        print("except:")
+    try:
+        if needBuy:
+            result_2 = buy()
+    except Exception:
+        print("except:")
     msg = msg + str(result_1) + str(result_2)+str(msg_3)
     print(msg)
     dingmessage(msg)
     global lastTimeSendMsg
     lastTimeSendMsg = int(timeInt)
-def handleCropssDown(msg_pre,timeInt,msg_3):
+def handleCropssDown(msg_pre,timeInt,msg_3,needBuy):
     msg = msg_pre + " sicha:"
-    result_1 = closeTrade('long')
-    result_2 = sell()
+    result_2 = ''
+    try:
+        result_1 = closeTrade('long')
+    except Exception:
+        print("except:")
+    try:
+        if needBuy:
+            result_2 = sell()
+    except Exception:
+        print("except:")
     msg = msg + str(result_1) + str(result_2)+str(msg_3)
     print(msg)
     dingmessage(msg)
@@ -111,7 +134,7 @@ def buy():
     print('buy request_time:'+nowTimStr())
 
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='buy',ccy=CCY,
-                                   ordType='market', sz='200',posSide='long')
+                                   ordType='market', sz='400',posSide='long')
     print('buy success:'+nowTimStr())
 
     print(result)
@@ -127,7 +150,7 @@ def sell():
     tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='sell',ccy=CCY,
-                                   ordType='market', sz='200',posSide='short')
+                                   ordType='market', sz='400',posSide='short')
     print('sell success:'+nowTimStr())
 
     print(result)
