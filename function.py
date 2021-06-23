@@ -79,22 +79,24 @@ def isCrossUp(kList,dList,msg_pre):
             msg_3 = 'reverse to upstatuse ,go to jincha:'
             upStatus = True
             downStatus = False
-            handleCropssDown(msg_pre, timeInt, msg_3,False)
+            #handleCropssDown(msg_pre, timeInt, msg_3,True)
             # 假突破后卖出买入的，等下次突破后再买
             #   一个周期之后，上周期发生了，向下死叉，但是中间又发生向向上金叉，d仍然小于k.需将状态反转，并执行反向操作。
         if (k_1 > d_1 and k > d) and upStatus:
             msg_3 = 'reverse to upstatuse ,go to jincha:'
             upStatus = False
             downStatus = True
-            handleCrossUp(msg_pre, timeInt, msg_3,False)
+            #handleCrossUp(msg_pre, timeInt, msg_3,True)
             #假突破后卖出买入的，等下次突破后再买
 
     print("klines k(n-2):"+str(k_1)+ ' d(n-2):'+str(d_1)+ ' k(n-1):'+ str(k) + ' d(n-1):'+str(d))
 def handleCrossUp(msg_pre,timeInt,msg_3,needBuy):
     msg = msg_pre + " jincha:"
     result_2 = ''
+    orderDetail = ''
     try:
         result_1 = closeTrade('short')
+        orderDetail = getOrderInfo(COIN_TYPE, result_1['data']['pnl'])
     except Exception:
         print("except:")
     try:
@@ -102,7 +104,7 @@ def handleCrossUp(msg_pre,timeInt,msg_3,needBuy):
             result_2 = buy()
     except Exception:
         print("except:")
-    msg = msg + str(result_1) + str(result_2)+str(msg_3)
+    msg = msg + str(result_1) + str(result_2)+str(msg_3)+'   收益率：'+ str(orderDetail)
     print(msg)
     dingmessage(msg)
     global lastTimeSendMsg
@@ -110,8 +112,10 @@ def handleCrossUp(msg_pre,timeInt,msg_3,needBuy):
 def handleCropssDown(msg_pre,timeInt,msg_3,needBuy):
     msg = msg_pre + " sicha:"
     result_2 = ''
+    orderDetail = ''
     try:
         result_1 = closeTrade('long')
+        orderDetail = getOrderInfo(COIN_TYPE, result_1['data']['pnl'])
     except Exception:
         print("except:")
     try:
@@ -119,7 +123,8 @@ def handleCropssDown(msg_pre,timeInt,msg_3,needBuy):
             result_2 = sell()
     except Exception:
         print("except:")
-    msg = msg + str(result_1) + str(result_2)+str(msg_3)
+
+    msg = msg + str(result_1) + str(result_2)+str(msg_3) + '   收益率：'+ str(orderDetail)
     print(msg)
     dingmessage(msg)
     global lastTimeSendMsg
@@ -134,7 +139,7 @@ def buy():
     print('buy request_time:'+nowTimStr())
 
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='buy',ccy=CCY,
-                                   ordType='market', sz='400',posSide='long')
+                                   ordType='market', sz='20',posSide='long')
     print('buy success:'+nowTimStr())
 
     print(result)
@@ -150,7 +155,7 @@ def sell():
     tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, flag)
     # 下单  Place Order
     result = tradeAPI.place_order(instId= COIN_TYPE, tdMode='cross', side='sell',ccy=CCY,
-                                   ordType='market', sz='400',posSide='short')
+                                   ordType='market', sz='20',posSide='short')
     print('sell success:'+nowTimStr())
 
     print(result)
@@ -168,6 +173,10 @@ def closeTrade(posSideStr : str):
     print('closeTrade success:'+nowTimStr())
 
     print(result)
+    return result
+def getOrderInfo(code :str,orderId: str):
+    tradeAPI = Trade.TradeAPI(API_KEY, SECRET_KEY, PASSPHRASE, False, '0')
+    result = tradeAPI.get_orders(code, str)
     return result
 def nowTimStr():
     timeInt = int(nowTime())
